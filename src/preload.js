@@ -5,3 +5,8 @@ const { contextBridge, ipcRenderer } = require("electron");
 contextBridge.exposeInMainWorld("backend", {
   getConfig: () => ipcRenderer.invoke("backend:getConfig"),
 });
+
+contextBridge.exposeInMainWorld("electronAPI", {
+  showSaveDialog: (options) => ipcRenderer.invoke("electron:showSaveDialog", options),
+  writeFile: (filePath, data) => ipcRenderer.invoke("electron:writeFile", filePath, data),
+});

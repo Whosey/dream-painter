@@ -1,6 +1,7 @@
 // src/main/ipc.js
-const { app, ipcMain } = require("electron");
+const { app, ipcMain, dialog } = require("electron");
 const crypto = require("crypto");
+const fs = require("fs");
 const { startBackend, stopBackend } = require("./backendLauncher");
 
 let backend = { baseUrl: null, token: null, child: null };
@@ -24,6 +25,19 @@ function registerIpc() {
       error: backend.error,
     };
 
+  });
+
+  ipcMain.handle("electron:showSaveDialog", async (event, options) => {
+    return dialog.showSaveDialog(BrowserWindow.fromWebContents(event.sender), options);
+  });
+
+  ipcMain.handle("electron:writeFile", async (event, filePath, data) => {
+    return new Promise((resolve, reject) => {
+      fs.writeFile(filePath, data, (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
   });
 }
 

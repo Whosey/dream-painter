@@ -44,6 +44,9 @@
           <!-- 真正的视频层：生成完成后显示 -->
           <video id="aiVideo" controls></video>
 
+          <!-- 结果图像显示 -->
+          <img id="roi" alt="result" class="hidden" />
+
           <!-- 生成中遮罩 -->
           <div id="videoOverlay" class="hidden">
             <div class="spinner"></div>
@@ -60,7 +63,17 @@
           <span id="stepIndicator" class="hidden">步骤 0/0</span>
 
           <button id="btnRegenerate" class="hidden">重新生成</button>
-</div>
+        </div>
+
+        <!-- 分享功能 -->
+        <div id="sharePanel" class="hidden">
+          <div class="shareTitle">分享作品</div>
+          <div class="shareButtons">
+            <button id="btnSaveImage">保存图片</button>
+            <button id="btnShareWechat">分享至微信</button>
+            <button id="btnShareQQ">分享至QQ</button>
+          </div>
+        </div>
 
       </section>
     </div>

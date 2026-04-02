@@ -13,14 +13,25 @@ function render() {
 
   $("btnCapture").disabled = !(s.state === store.State.Ready || s.state === store.State.ResultReady || s.state === store.State.Error);
 
+  // 控制显示内容
   if (s.roiImage) {
-    $("roi").src = fileUrl(s.roiImage); // 加时间戳避免旧图缓存 :contentReference[oaicite:25]{index=25}
+    $("roi").src = fileUrl(s.roiImage);
+    $("roi").style.display = "block";
+    $("aiVideo").style.display = "none";
+    $("videoPlaceholder").style.display = "none";
+  } else {
+    $("roi").style.display = "none";
+    $("aiVideo").style.display = "block";
+    // videoPlaceholder的显示由其他逻辑控制
   }
 
   $("subtitle").innerText = (s.suggestions || []).slice(0, 4).join("\n");
 
   // WAIT_CONFIRM 弹窗
   $("confirmModal").style.display = (s.state === store.State.WaitConfirm) ? "block" : "none";
+
+  // 分享面板：只在 ResultReady 状态显示
+  $("sharePanel").style.display = (s.state === store.State.ResultReady) ? "block" : "none";
 }
 
 async function main() {
@@ -97,6 +108,73 @@ async function main() {
 
     await confirmTarget(s.jobId, target);
     // 后端会继续推 job_progress/job_done；你这里只要进入 Processing 即可
+  };
+
+  // 6) 分享功能
+  $("btnSaveImage").onclick = async () => {
+    const s = store.get();
+    if (!s.roiImage) return;
+
+    try {
+      // 获取图片数据
+      const response = await fetch(fileUrl(s.roiImage));
+      const blob = await response.blob();
+      
+      // 使用Electron dialog保存文件
+      const result = await window.electronAPI.showSaveDialog({
+        title: '保存作品图片',
+        defaultPath: `dream-painter-${Date.now()}.png`,
+        filters: [
+          { name: 'PNG图片', extensions: ['png'] },
+          { name: '所有文件', extensions: ['*'] }
+        ]
+      });
+
+      if (!result.canceled) {
+        // 将blob写入文件
+        const arrayBuffer = await blob.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        await window.electronAPI.writeFile(result.filePath, buffer);
+        alert('图片保存成功！');
+      }
+    } catch (error) {
+      console.error('保存图片失败:', error);
+      alert('保存图片失败，请重试');
+    }
+  };
+
+  $("btnShareWechat").onclick = async () => {
+    const s = store.get();
+    if (!s.roiImage) return;
+
+    try {
+      // 生成分享链接或二维码
+      const shareUrl = `${window.location.origin}/share?image=${encodeURIComponent(s.roiImage)}&suggestions=${encodeURIComponent((s.suggestions || []).join(','))}`;
+      
+      // 复制到剪贴板
+      await navigator.clipboard.writeText(shareUrl);
+      alert('分享链接已复制到剪贴板！\n\n在微信中粘贴链接即可分享');
+    } catch (error) {
+      console.error('分享失败:', error);
+      alert('分享失败，请重试');
+    }
+  };
+
+  $("btnShareQQ").onclick = async () => {
+    const s = store.get();
+    if (!s.roiImage) return;
+
+    try {
+      // 生成分享链接
+      const shareUrl = `${window.location.origin}/share?image=${encodeURIComponent(s.roiImage)}&suggestions=${encodeURIComponent((s.suggestions || []).join(','))}`;
+      
+      // 复制到剪贴板
+      await navigator.clipboard.writeText(shareUrl);
+      alert('分享链接已复制到剪贴板！\n\n在QQ中粘贴链接即可分享');
+    } catch (error) {
+      console.error('分享失败:', error);
+      alert('分享失败，请重试');
+    }
   };
 }
 
