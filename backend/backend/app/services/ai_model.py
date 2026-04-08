@@ -5,7 +5,7 @@ import dashscope
 from dashscope import Generation
 
 # 直接在这里填你的 API Key（sk-xxxx）
-dashscope.api_key = "这里替换成你真正的 API Key"
+dashscope.api_key = "sk-53ceb332c7384525a2235c0cbb62d5ba"
 
 def generate_drawing_steps(prompt, subject):
     system_prompt = """
